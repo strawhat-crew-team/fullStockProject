@@ -1,0 +1,5 @@
+node_modules/    # 前端依赖包（几万个文件，npm install 能重新生成）
+.venv/           # Python 虚拟环境（python -m venv 能重新生成）
+__pycache__/     # Python 运行缓存
+*.pyc
+dist/            # 前端打包产物（npm run build 生成）
