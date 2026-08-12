@@ -1,5 +1,13 @@
-node_modules/    # 前端依赖包（几万个文件，npm install 能重新生成）
-.venv/           # Python 虚拟环境（python -m venv 能重新生成）
-__pycache__/     # Python 运行缓存
+# 前端依赖包（几万个文件，npm install 能重新生成）
+node_modules/
+# Python 虚拟环境（python -m venv 能重新生成）
+.venv/
+# Python 运行缓存
+__pycache__/
 *.pyc
-dist/            # 前端打包产物（npm run build 生成）
+# 前端打包产物（npm run build 生成）
+dist/
+# SQLite 数据库文件（create_all 生成，不进版本库）
+*.db
+
+.env
