@@ -17,7 +17,7 @@
 | 数据库 | SQLite | 轻量级关系数据库 |
 | ORM | SQLAlchemy | 数据库对象映射 |
 | 认证 | JWT (HS256) | 登录态管理 |
-| 数据库迁移 | Alembic | 表结构版本管理 |
+| 建表方式 | create_all (Base.metadata) | 开发期启动时自动建表，暂不引入迁移工具 |
 
 ## 项目结构
 
@@ -48,8 +48,20 @@
 │       │   └── Tasks.vue      # 任务管理页
 │       ├── components/    # 可复用组件（当前为空）
 │       └── assets/        # 编译资源（当前为空）
-└── backend/               # 后端项目（当前为空，Phase 2 填充）
-                           # Python 环境：复用 E:\python_project\.venv（Python 3.12）
+└── backend/               # 后端项目（Phase 2 开发中）
+    ├── main.py            # FastAPI 入口，8008 端口（✅ 已完成）
+    ├── database.py        # SQLite 引擎 / 会话 / 公共基类 Base（✅ 已完成）
+    ├── models.py          # ORM 模型 User / Task 两张表（✅ 已完成）
+    ├── schemas.py         # Pydantic 请求/响应模型（✅ 已完成）
+    ├── auth.py            # JWT 签发与校验工具（✅ 已完成）
+    ├── routers/           # 路由模块（⏳ 待开发）
+    │   ├── auth.py        # 注册 / 登录
+    │   ├── tasks.py       # 任务 CRUD
+    │   └── stats.py       # 统计
+    ├── tm.db              # SQLite 数据文件（运行时生成，已 git 忽略）
+    └── requirements.txt   # 依赖清单（收尾时生成）
+    # Python 环境：全局 Python 3.12（C:\Users\lenovo\AppData\Local\Programs\Python\Python312，
+    # 已装 fastapi / uvicorn / sqlalchemy / PyJWT）
 ```
 
 ## 数据库设计
@@ -133,9 +145,10 @@
 - [x] App.vue 改为 router-view 容器
 
 ### Phase 2：后端搭建
-- [ ] backend 目录 + Python 虚拟环境
-- [ ] FastAPI 项目结构
-- [ ] SQLAlchemy 模型定义（user / task）
+- [x] FastAPI 入口 main.py（8008 端口）
+- [x] 数据库连接 database.py（SQLite 引擎 / 会话 / Base）
+- [x] SQLAlchemy 模型定义 models.py（user / task 表）
+- [x] Pydantic 请求/响应模型 schemas.py
 - [ ] JWT 认证（注册/登录接口）
 - [ ] 任务 CRUD 接口
 - [ ] 统计接口
@@ -172,10 +185,9 @@
 cd tm
 npm run dev
 
-# 后端（端口 8008，Phase 2 开始）
-# 激活共享虚拟环境（Windows PowerShell 用这行）
-E:\python_project\.venv\Scripts\Activate.ps1
-uvicorn main:app --reload --port 8008
+# 后端（端口 8008，用全局 Python 3.12，已装 fastapi/uvicorn/sqlalchemy/PyJWT）
+cd backend
+C:/Users/lenovo/AppData/Local/Programs/Python/Python312/python.exe -m uvicorn main:app --reload --port 8008
 ```
 
 ## 约定
@@ -185,3 +197,4 @@ uvicorn main:app --reload --port 8008
 - 后端返回纯 JWT（不带 Bearer 前缀），前端拦截器负责拼接
 - API 路径统一 `/api` 前缀，vite proxy 代理转发
 - Git 分支规范：dev 开发 → PR 合入 master
+- 每完成一个后端文件或接口，立即更新本文件（目录结构 / 接口表 / 开发进度）
