@@ -24,7 +24,7 @@
 ```
 01-GitHub_fullstock_project/
 ├── DEV.md                 # 项目开发文档（本文件）
-├── 前端搭建流程.md        # 前端从零搭建步骤（脚手架+依赖+目录）
+├── fullstock项目开发流程.md  # 开发过程 + Git 操作手册（含前端搭建步骤）
 ├── tm/                    # 前端项目
 │   ├── index.html         # 入口 HTML
 │   ├── package.json       # 依赖清单
@@ -56,7 +56,7 @@
     ├── auth.py            # JWT 签发与校验工具（✅ 已完成）
     ├── routers/           # 路由模块
     │   ├── auth.py        # 注册 / 登录（✅ 已完成）
-    │   ├── tasks.py       # 任务 CRUD（⏳ 待开发）
+    │   ├── tasks.py       # 任务 CRUD（✅ 已完成）
     │   └── stats.py       # 统计（⏳ 待开发）
     ├── tm.db              # SQLite 数据文件（运行时生成，已 git 忽略）
     └── requirements.txt   # 依赖清单（收尾时生成）
@@ -151,7 +151,7 @@
 - [x] SQLAlchemy 模型定义 models.py（user / task 表）
 - [x] Pydantic 请求/响应模型 schemas.py
 - [x] JWT 认证（注册/登录接口）
-- [ ] 任务 CRUD 接口
+- [x] 任务 CRUD 接口
 - [ ] 统计接口
 
 ### Phase 3：登录联调
