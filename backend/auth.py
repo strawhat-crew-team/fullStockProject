@@ -10,7 +10,7 @@ import jwt
 
 
 # ---------- 配置（学习阶段写死，生产要挪到环境变量） ----------
-SECRET_KEY = "szdjf888-szdjf666"  # 密钥
+SECRET_KEY = "szdjf888-szdjf666-szdjf888-szdjf666"  # 密钥
 ALGORITHM = "HS256"
 EXPIRE_MINUTES = 60 * 24
 
