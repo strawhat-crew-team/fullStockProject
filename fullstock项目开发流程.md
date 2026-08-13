@@ -307,7 +307,7 @@ index.html（浏览器入口）
 - [x] schemas.py（Pydantic 请求/响应模型）
 - [x] auth.py（JWT 签发 create_token / 校验 decode_token / 依赖 get_current_user）
 - [x] routers/auth.py（注册 / 登录接口）
-- [ ] routers/tasks.py（任务 CRUD，用 Depends(get_current_user) 做身份识别）
+- [x] routers/tasks.py（任务 CRUD，用 Depends(get_current_user) 做身份识别；实测通过：5 接口 + 无 token 422 / 伪造 token 401 / 越权 404）
 - [ ] routers/stats.py（统计接口）
 - [ ] requirements.txt（收尾时生成）
 - [ ] 每完成一个接口同步更新 DEV.md 接口表

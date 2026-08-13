@@ -5,20 +5,12 @@
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from database import SessionLocal, get_db
 from models import User
 from schemas import RegisterRequest, LoginRequest, TokenResponse
 from auth import create_token, decode_token
 
 router = APIRouter(prefix="/api", tags=["认证"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/register")
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
