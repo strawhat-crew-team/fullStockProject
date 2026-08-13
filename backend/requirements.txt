@@ -1,0 +1,5 @@
+# tm 后端依赖清单（与全局 Python 3.12 环境一致，锁定版本）
+fastapi==0.136.0
+uvicorn==0.44.0
+SQLAlchemy==2.0.49
+PyJWT==2.12.1

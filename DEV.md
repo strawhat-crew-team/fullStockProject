@@ -57,9 +57,9 @@
     ├── routers/           # 路由模块
     │   ├── auth.py        # 注册 / 登录（✅ 已完成）
     │   ├── tasks.py       # 任务 CRUD（✅ 已完成）
-    │   └── stats.py       # 统计（⏳ 待开发）
+    │   └── stats.py       # 统计（✅ 已完成）
     ├── tm.db              # SQLite 数据文件（运行时生成，已 git 忽略）
-    └── requirements.txt   # 依赖清单（收尾时生成）
+    └── requirements.txt   # 依赖清单（✅ 已生成）
     # Python 环境：全局 Python 3.12（C:\Users\lenovo\AppData\Local\Programs\Python\Python312，
     # 已装 fastapi / uvicorn / sqlalchemy / PyJWT）
 ```
@@ -152,7 +152,8 @@
 - [x] Pydantic 请求/响应模型 schemas.py
 - [x] JWT 认证（注册/登录接口）
 - [x] 任务 CRUD 接口
-- [ ] 统计接口
+- [x] 统计接口
+- [x] requirements.txt
 
 ### Phase 3：登录联调
 - [ ] 前端登录页 UI

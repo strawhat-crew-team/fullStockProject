@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from database import engine, Base
 from routers.auth import router as auth_router
 from routers.tasks  import router as tasks_router
+from routers.stats  import router as stats_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,5 +27,6 @@ async def index():
 # 把 routers/auth.py 里的 /api/register、/api/login 装进应用
 app.include_router(auth_router)
 app.include_router(tasks_router)
+app.include_router(stats_router)
 
 
