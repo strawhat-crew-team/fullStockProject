@@ -34,7 +34,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
     return {"message": "注册成功"}
 
-@router.post("/login")
+@router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.phone == req.phone).first()
     if not user or user.password != req.password:

@@ -54,10 +54,10 @@
     ├── models.py          # ORM 模型 User / Task 两张表（✅ 已完成）
     ├── schemas.py         # Pydantic 请求/响应模型（✅ 已完成）
     ├── auth.py            # JWT 签发与校验工具（✅ 已完成）
-    ├── routers/           # 路由模块（⏳ 待开发）
-    │   ├── auth.py        # 注册 / 登录
-    │   ├── tasks.py       # 任务 CRUD
-    │   └── stats.py       # 统计
+    ├── routers/           # 路由模块
+    │   ├── auth.py        # 注册 / 登录（✅ 已完成）
+    │   ├── tasks.py       # 任务 CRUD（⏳ 待开发）
+    │   └── stats.py       # 统计（⏳ 待开发）
     ├── tm.db              # SQLite 数据文件（运行时生成，已 git 忽略）
     └── requirements.txt   # 依赖清单（收尾时生成）
     # Python 环境：全局 Python 3.12（C:\Users\lenovo\AppData\Local\Programs\Python\Python312，
@@ -101,6 +101,7 @@
 
 | 方法 | 路径 | 说明 | 请求体 | 响应 |
 |------|------|------|--------|------|
+| GET | / | 探活 | - | { message } |
 | POST | /api/register | 注册 | phone, password, nickname | { message } |
 | POST | /api/login | 登录 | phone, password | { access_token, token_type } |
 
@@ -149,7 +150,7 @@
 - [x] 数据库连接 database.py（SQLite 引擎 / 会话 / Base）
 - [x] SQLAlchemy 模型定义 models.py（user / task 表）
 - [x] Pydantic 请求/响应模型 schemas.py
-- [ ] JWT 认证（注册/登录接口）
+- [x] JWT 认证（注册/登录接口）
 - [ ] 任务 CRUD 接口
 - [ ] 统计接口
 
