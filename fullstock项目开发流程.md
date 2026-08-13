@@ -298,7 +298,7 @@ index.html（浏览器入口）
 
 ---
 
-## 四、后端开发流程（Phase 2 进行中）
+## 四、后端开发流程（Phase 2 已完成）
 
 - [x] 环境：全局 Python 3.12（`C:\Users\lenovo\AppData\Local\Programs\Python\Python312`，已装 fastapi / uvicorn / sqlalchemy / PyJWT）；**所有后端命令必须先 `cd backend`**（模块 import 以启动目录为根，项目根跑会报 ModuleNotFoundError）
 - [x] FastAPI 入口 main.py（8008 端口，lifespan 建表 + 挂载路由）
@@ -308,10 +308,56 @@ index.html（浏览器入口）
 - [x] auth.py（JWT 签发 create_token / 校验 decode_token / 依赖 get_current_user）
 - [x] routers/auth.py（注册 / 登录接口）
 - [x] routers/tasks.py（任务 CRUD，用 Depends(get_current_user) 做身份识别；实测通过：5 接口 + 无 token 422 / 伪造 token 401 / 越权 404）
-- [ ] routers/stats.py（统计接口）
-- [ ] requirements.txt（收尾时生成）
-- [ ] 每完成一个接口同步更新 DEV.md 接口表
-- [ ] 完成后补写本文件后端章节
+- [x] routers/stats.py（统计接口；实测通过：分组求和正确、无日期任务被过滤、完成率计数正确）
+- [x] requirements.txt（已生成，锁定版本）
+- [x] 每完成一个接口同步更新 DEV.md 接口表
+- [x] 完成后补写本文件后端章节（即以下正文）
+
+### 1. 后端文件依赖链（横向联系）
+
+```
+main.py（入口：lifespan 建表 + include_router 挂载所有路由）
+  ├─ database.py     引擎 engine / 会话 SessionLocal / 公共基类 Base
+  ├─ models.py       ORM 模型 User、Task（表结构）
+  ├─ schemas.py      Pydantic 校验模型（请求/响应的"形状"）
+  ├─ routers/auth.py   注册、登录、get_current_user 依赖
+  ├─ routers/tasks.py  任务 CRUD 5 个接口
+  └─ routers/stats.py  统计 2 个接口
+
+routers/*.py ──import──> database.py（会话）+ models.py（表）+ schemas.py（校验）
+                         + routers/auth.py（get_current_user 身份依赖）
+```
+
+依赖方向：路由文件引用公共设施（数据库/模型/校验/认证），路由之间不互相 import（tasks、stats 都只认 token 里的 user_id，互不认识）。
+
+### 2. 各文件职责与关键点
+
+#### database.py —— 数据库地基
+`create_engine` 建引擎 → `SessionLocal` 造会话 → `Base` 给所有模型继承。`get_db` 是生成器函数：每个请求开一个会话，`yield` 给接口用，请求结束在 `finally` 里关掉（从 auth.py 抽到公共文件，多个路由文件共用）。
+
+#### models.py —— 表和类的映射
+`class Task(Base)` + `__tablename__ = "tasks"`，每个字段一行 `mapped_column`。ORM 的核心翻译：`db.query(Task)` 填**类**不填表名，SQLAlchemy 按 `__tablename__` 翻译成 `SELECT ... FROM tasks`。两个机制要记牢：`default=datetime.now` 不带括号 = 插入时才调用；id 自增、created_at 生成都在数据库侧，内存对象没有，必须 `db.refresh(task)` 回读。
+
+#### schemas.py —— 请求/响应的形状
+TaskCreate 只放前端能传的业务字段（都带默认值）；TaskUpdate 全部字段可选，配合 `exclude_unset=True` 做部分更新；TaskResponse 加 `from_attributes=True`，ORM 对象可直接序列化返回。系统字段边界：id、created_at、user_id 都不出现在请求模型里（防伪造）。
+
+#### auth.py —— JWT 工具
+`create_token(user_id)` 签发、`decode_token(token)` 验签。密钥和算法集中在这一个文件。`except jwt.PyJWTError` 一次接住整个错误家族（DecodeError / ExpiredSignatureError 等）。
+
+#### routers/auth.py —— 注册/登录 + 身份依赖
+`get_current_user` 依赖函数：FastAPI 收到请求先执行它——从 Authorization 头取 token、验签、返回 user_id，失败抛 401。接口参数里写 `user_id: int = Depends(get_current_user)`，身份校验就自动挂在每个接口前面。
+
+#### routers/tasks.py —— 任务 CRUD
+踩过的坑：`from auth import` 会命中 backend/auth.py 工具模块（同名模块），必须写 `from routers.auth import` 完整路径。每个接口两个依赖：身份 + 会话。查任务用双条件 `Task.id == task_id, Task.user_id == user_id`（翻译：`WHERE id = ? AND user_id = ?`），自己的才查得到，别人的一律 404——越权和不存在统一，不泄露存在性。创建用 `Task(user_id=user_id, **req.model_dump())` 解包；更新用 `exclude_unset` + `setattr` 循环只改前端真传的字段；删除用 204（协议规定无响应体）。
+
+#### routers/stats.py —— 统计
+聚合查询三件套：`func.sum` / `func.count`（SQL 的 SUM / COUNT）、`group_by`（分组）、`scalar()`（取第一行第一列的单值）。`Task.date.isnot(None)` 翻译成 `IS NOT NULL`——NULL 不能用等号比较，SQL 专门有 IS NULL 语法；不加这个过滤，没填日期的任务会合成 date 为 None 的一组。`.label("别名")` 翻译成 `AS 别名`。
+
+### 3. 接口验证方法
+
+- 开发期最快捷：启动后开 http://127.0.0.1:8008/docs，Swagger 界面逐个试（注册 → 登录拿 token → Authorize 填 Bearer token → 调接口）
+- 批量回归：requests 脚本模拟真实调用（注册 → 登录 → 带 token 建/查/改/删 → 越权用户 404）
+- 预期状态码对照：201 创建成功、204 删除成功（无响应体）、404 越权或不存在、422 缺必填参数、401 token 缺失或伪造
 
 ---
 
