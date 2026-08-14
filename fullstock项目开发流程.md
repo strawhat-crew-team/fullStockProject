@@ -426,7 +426,52 @@ confirmPassword 字段只做本地比对、不发后端（后端 schema 里没�
 
 ---
 
-## 六、Git 操作手册
+## 六、任务管理页（Phase 4 已完成）
+
+- [x] 任务列表页 Tasks.vue（el-table 表格 + 状态标签 + 工时列）
+- [x] 创建/编辑共用一个弹窗表单（el-dialog + el-form + 日期选择器）
+- [x] 删除（el-popconfirm 气泡确认）+ 归档（已归档禁用保护）
+- [x] Element Plus 新组件集成（table/dialog/popconfirm/input-number/date-picker/tag）
+- [x] 前后端联调实测：列表/新建/编辑/归档/删除五项全过
+- [x] 联调修复三个 bug（见踩坑记录）
+- [x] 完成本文件任务管理章节（即以下正文）
+
+### 1. 看懂 Vue 页面的方法论（组件黑盒 + 五条连接线）
+
+**组件 = 黑盒**：Element Plus 每个组件只需要认识三个接口——属性（`:xxx="变量"` 传参）、事件（`@xxx="函数"` 监听）、插槽（`#default="scope"` 塞内容，scope 是组件递出来的数据）。
+
+**组件 ↔ script 五条连接线**：
+
+| 连接线 | 写法 | 方向 | 作用 |
+|--------|------|------|------|
+| ref | `ref="formRef"` ↔ `const formRef = ref(null)` | 模板↔JS | 拿组件实例，调它的方法 |
+| v-model | `v-model="form.phone"` | 双向 | 输入框 ↔ 变量，互相跟着变 |
+| :属性 | `:data="tasks"` | JS→模板 | 把变量/表达式传进组件 |
+| @事件 | `@click="handleLogin"` | 模板→JS | 组件触发事件时调用你的函数 |
+| scope | `#default="scope"` | 组件→模板 | 表格把当前行数据递给你（scope.row） |
+
+**读组件三步法**：看标签名（是什么组件）→ 扫属性找 `:` 和 `v-model`（连到哪些变量）→ 找 `@` 和 `#default`（触发哪些函数、scope 给了什么）。
+
+### 2. 页面结构与新组件
+
+Tasks.vue 三块：顶部栏（标题+新建按钮）→ el-table 表格（`:data="tasks"` 渲染列表）→ el-dialog 弹窗（新建/编辑共用，`isEdit` 变量切换模式）。新组件要点：
+
+- **el-table / el-table-column**：`:data` 传数组；`prop` 指定取对象哪个字段；无 prop 的列用 `#default="scope"` 自定义显示（scope.row = 行数据）
+- **el-dialog**：`v-model` 开关；`#footer` 是规定的底部插槽
+- **el-popconfirm**：包住按钮，气泡点"确定"才触发 `@confirm`
+- **el-input-number**：数字输入，`:min/:max` 限范围
+- **el-date-picker**：**必须写 `value-format="YYYY-MM-DD HH:mm:ss"`**，否则 v-model 拿到 Date 对象，格式对不上后端；type="date"（日期）/ "datetime"（日期时间）两种
+- **el-tag**：状态小标签，`:type` 控制颜色
+
+### 3. 联调踩坑记录（三个真 bug）
+
+1. **空日期字符串 → 422**：el-date-picker 没选时 v-model 是 `''`，后端 datetime 类型解析不了空串。修复：提交前把空串转 null（`start_time: form.start_time || null`）。原则：字符串字段能收空串，**日期/数字字段空值必须传 null**。
+2. **响应拦截器双重解包**：http.js 的拦截器已经 `return response.data`（剥掉 axios 外壳），页面里再写 `res.data` 拿到的是 undefined。修复：`tasks.value = await http.get('/tasks')` 直接赋值。原则：**拦截器剥一层，页面不能再 .data**。
+3. **formRef / ElMessage 未声明**：模板用了 `ref="formRef"` 但 script 没写 `const formRef = ref(null)`；ElMessage 是 JS 函数必须 `import { ElMessage } from 'element-plus'`（组件自动全局注册，函数不注册）。
+
+---
+
+## 七、Git 操作手册
 
 ### 1. 数据流动模型（核心概念）
 

@@ -163,11 +163,13 @@
 - [x] 前后端联调通过（注册/登录/守卫三环节实测）
 - [x] 修复 vite.config.js：sever→server、api→/api、https→http
 
-### Phase 4：任务管理
-- [ ] 任务列表页（表格 + 筛选）
-- [ ] 创建/编辑任务表单
-- [ ] 删除 + 归档功能
-- [ ] Element Plus 组件集成
+### Phase 4：任务管理 ✅ 已完成
+- [x] 任务列表页（el-table 表格 + 状态标签）
+- [x] 创建/编辑任务表单（el-dialog + el-form + 日期选择器）
+- [x] 删除（el-popconfirm 气泡确认）+ 归档（已归档禁用保护）
+- [x] Element Plus 组件集成（table/dialog/popconfirm/input-number/date-picker/tag）
+- [x] 前后端联调实测（列表/新建/编辑/归档/删除全过）
+- [x] 联调修复：空日期字符串转 null（422）、响应拦截器双重解包（res.data→直接赋值）
 
 ### Phase 5：统计与优化
 - [ ] Dashboard 统计卡片
