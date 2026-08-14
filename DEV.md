@@ -173,11 +173,12 @@
 - [x] 前后端联调实测（列表/新建/编辑/归档/删除全过）
 - [x] 联调修复：空日期字符串转 null（422）、响应拦截器双重解包（res.data→直接赋值）
 
-### Phase 5：统计与优化
-- [ ] Dashboard 统计卡片
-- [ ] ECharts 图表（工时趋势 / 完成率）
-- [ ] 响应式布局优化
-- [ ] 部署准备
+### Phase 5：统计与优化 ✅ 已完成
+- [x] Dashboard 统计卡片（总任务数 / 已完成 / 完成率，数据来自 /api/stats/efficiency）
+- [x] ECharts 图表（每日工时折线图 / 完成率环形图，echarts 6.1.0）
+- [x] 响应式布局优化（flex 布局卡片 + 图表）
+- [x] npm run build 生产构建验证通过
+- [x] 图表实例 onBeforeUnmount 释放（防内存泄漏）
 
 ## 环境要求
 

@@ -471,7 +471,32 @@ Tasks.vue 三块：顶部栏（标题+新建按钮）→ el-table 表格（`:dat
 
 ---
 
-## 七、Git 操作手册
+## 七、Dashboard 统计页（Phase 5 已完成）
+
+- [x] 安装 echarts 6.1.0
+- [x] Dashboard.vue：统计卡片 + 两个图表（template/style 由 AI 代写，JS 对照学习）
+- [x] 每日工时折线图（数据：/api/stats/daily）+ 完成率环形图（数据：/api/stats/efficiency）
+- [x] 图表实例 onBeforeUnmount 释放（防内存泄漏）
+- [x] npm run build 生产构建验证通过
+- [x] 完成本文件 Dashboard 章节（即以下正文）
+
+### 1. echarts 三步曲（核心 API）
+
+`echarts.init(容器DOM)` 创建实例 → `chart.setOption(配置对象)` 画图 → `chart.dispose()` 销毁。配置对象骨架：`xAxis`（横轴：category 类别轴 / value 数值轴）、`yAxis`（纵轴）、`series`（真正画出的图形，`type: 'line'` 折线 / `type: 'pie'` 饼图，`radius: ['40%','70%']` 内径外径=环形）。`tooltip.trigger`:axis（整列提示）/ item（单块提示）。`smooth: true` 曲线平滑。
+
+### 2. 数据组装手法
+
+- **Promise.all([p1, p2])**：两个接口并行发，`[r1, r2]` 一次收两个结果（比串行 await 快一倍）
+- **map 映射**：`arr.map(d => d.date)` 把对象数组"映射"成字段数组，直接喂给 xAxis/series
+- **响应式分工**：卡片数据（stats）用 reactive/computed 参与 Vue 渲染；图表实例（chart 对象）用普通变量——图表是 DOM 世界的，不参与响应式
+
+### 3. 内存释放（重要规矩）
+
+echarts 实例内部会常驻监听，组件销毁时不 dispose 会内存泄漏（页面切多了越来越卡）。`onBeforeUnmount` 生命周期钩子里调 `dispose()`。原则和"Python 打开文件要关闭"同源：**创建了资源就要负责释放**。
+
+---
+
+## 八、Git 操作手册
 
 ### 1. 数据流动模型（核心概念）
 
