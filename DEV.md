@@ -105,6 +105,8 @@
 | POST | /api/register | 注册 | phone, password, nickname | { message } |
 | POST | /api/login | 登录 | phone, password | { access_token, token_type } |
 
+> 安全说明：`get_current_user` 依赖验签后还会**查库确认用户存在**（不存在返回 401"用户不存在"）——用户被删除后其 token 立即失效（修复于 PLAN-001）。
+
 ### 任务模块 `/api/tasks`（需 JWT）
 
 | 方法 | 路径 | 说明 |

@@ -345,7 +345,7 @@ TaskCreate 只放前端能传的业务字段（都带默认值）；TaskUpdate �
 `create_token(user_id)` 签发、`decode_token(token)` 验签。密钥和算法集中在这一个文件。`except jwt.PyJWTError` 一次接住整个错误家族（DecodeError / ExpiredSignatureError 等）。
 
 #### routers/auth.py —— 注册/登录 + 身份依赖
-`get_current_user` 依赖函数：FastAPI 收到请求先执行它——从 Authorization 头取 token、验签、返回 user_id，失败抛 401。接口参数里写 `user_id: int = Depends(get_current_user)`，身份校验就自动挂在每个接口前面。
+`get_current_user` 依赖函数：FastAPI 收到请求先执行它——从 Authorization 头取 token、验签、**查库确认用户存在**（PLAN-001 修复：用户被删除后 token 立即失效，返回 401"用户不存在"）、返回 user_id，任一失败抛 401。接口参数里写 `user_id: int = Depends(get_current_user)`，身份校验就自动挂在每个接口前面。依赖可以嵌套：get_current_user 参数里写 `db: Session = Depends(get_db)`，FastAPI 会自动先注入会话再执行校验。
 
 #### routers/tasks.py —— 任务 CRUD
 踩过的坑：`from auth import` 会命中 backend/auth.py 工具模块（同名模块），必须写 `from routers.auth import` 完整路径。每个接口两个依赖：身份 + 会话。查任务用双条件 `Task.id == task_id, Task.user_id == user_id`（翻译：`WHERE id = ? AND user_id = ?`），自己的才查得到，别人的一律 404——越权和不存在统一，不泄露存在性。创建用 `Task(user_id=user_id, **req.model_dump())` 解包；更新用 `exclude_unset` + `setattr` 循环只改前端真传的字段；删除用 204（协议规定无响应体）。

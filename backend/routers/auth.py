@@ -36,7 +36,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
-def get_current_user(authorization: str = Header(...)):
+def get_current_user(authorization: str = Header(...), db: Session = Depends(get_db)):
     """
     依赖函数：FastAPI收到请求后先执行本函数，校验通过才放行到接口函数
     """
@@ -49,6 +49,12 @@ def get_current_user(authorization: str = Header(...)):
         user_id = decode_token(token)
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="token已过期")
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    # 防止幽灵用户
+    if not user:
+        raise HTTPException(status_code=401, detail="用户不存在")
 
     return user_id
 
