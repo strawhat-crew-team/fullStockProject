@@ -361,7 +361,72 @@ TaskCreate 只放前端能传的业务字段（都带默认值）；TaskUpdate �
 
 ---
 
-## 五、Git 操作手册
+## 五、前端登录联调（Phase 3 已完成）
+
+- [x] 登录页 Login.vue（el-form 校验 + 登录请求 + token 存 localStorage + 跳转）
+- [x] 注册页 Register.vue（4 字段校验 + 自定义 validator 比对两次密码）
+- [x] axios 封装 http.js（拦截器自动拼 Bearer token）
+- [x] 路由守卫（未登录访问 /tasks 踢回 /login）
+- [x] 前后端联调实测通过（注册 / 登录 / 守卫三环节）
+- [x] 修复 vite.config.js 三处配置错误（sever→server、api→/api、https→http）
+- [x] Chrome 自动填充根治（autocomplete="new-password"）
+- [x] 完成本文件前端联调章节（即以下正文）
+
+### 1. 前端登录链路（横向联系）
+
+```
+Login.vue / Register.vue（页面：表单 + 按钮）
+  ├─ el-form 校验（rules 定义在 script，:rules="rules" 传进模板）
+  │    ├─ 失焦 blur：单条即时校验（输入框离开焦点时）
+  │    └─ 提交 validate()：手动触发，无条件检查全部规则
+  ├─ api/http.js（axios 封装：baseURL + 拦截器）
+  │    ├─ 请求拦截器：localStorage 有 token → 拼 Authorization: Bearer <token>
+  │    └─ 响应拦截器：统一处理错误（401 提示 + 跳登录）
+  ├─ 后端 /api/login → 返回 access_token → localStorage.setItem('token', ...)
+  └─ router/index.js 全局守卫 beforeEach：无 token 一律踢回 /login
+
+导航六阶段：触发（点链接/地址栏/router.push）
+  → 解析（找到目标组件）
+  → 全局守卫（beforeEach 挂起，等 next 决定）
+  → 确认
+  → 渲染组件
+  → 地址栏变化（发生在守卫之后！）
+```
+
+### 2. 各文件职责与关键点
+
+#### Login.vue —— 登录页
+`form` 用 reactive 包对象（直接 .phone 取值，**没有 .value**，那是 ref 的专属写法）；`rules` 里的 required/pattern/min/max 是 el-form 校验规则；提交时先 `await formRef.value.validate()` 校验，通过才发请求（校验不过会 reject，直接进 catch）；拿到 `data.access_token` 存 localStorage，然后 `router.push('/tasks')`——**登录的本质是身份识别**：后端所有任务接口按 token 里的 user_id 查数据，没有 token 就没有身份。
+
+#### Register.vue —— 注册页
+confirmPassword 字段只做本地比对、不发后端（后端 schema 里没有这个字段，发了反而 422）。自定义 validator 是函数 `(rule, value, callback)`：必须调用 callback()（通过）或 callback(new Error('文字'))（失败，组件显示 Error 里的文字）——**不调用 callback 会挂起**，表单永远不提交。
+
+#### http.js —— 请求封装
+所有请求统一走一个 axios 实例（baseURL=/api，vite 代理转发到 8008）。请求拦截器在每个请求发出前拼 token——**token 键名必须与 Login.vue 存的一致**（都是 'token'）。
+
+#### router/index.js —— 路由守卫
+`router.beforeEach((to, from, next) => {...})` 三分支：登录/注册白名单放行 → 有 token 放行 → 无 token `next('/login')`。守卫管"能不能进页面"，是纯前端体验（localStorage 可伪造，零安全价值）；**数据安全靠后端 get_current_user**（token 验签，伪造不了）——两层职责不同，不能互相替代。
+
+### 3. 联调实测记录
+
+- 注册：13900002222 注册成功（数据库实际落了一行）
+- 登录：13900001111 正确密码 → 200 + 119 字符 JWT → localStorage 有 token → 跳 /tasks
+- 登录失败：错误密码 → 401（"手机号或密码错误"）
+- 守卫：清掉 token 访问 /tasks → 地址栏被踢回 /login；有 token 访问 /tasks → 正常进入
+- vite 代理链路：python 直调 5173 的 /api 接口 → 200，代理通
+
+### 4. 踩坑记录（实际遇到的）
+
+1. **vite.config.js 三处配置错误**：`sever`（应为 server，拼错整个代理配置失效）、`'api'`（应为 '/api'，匹配路径前缀必须带斜杠）、`https://localhost:8008`（后端是 http 服务，用 https 协议连不上）。
+2. **Chrome 自动填充**：浏览器密码管理器自动填 localhost 的已存凭据（chrome:// 内部页面工具无法操作）。代码层根治：输入框加 `autocomplete="new-password"`（Element Plus 会透传原生属性），不能写 autocomplete="username"（会主动邀请填充）。
+3. **reactive 对象误用 .value**：`form.value.phone` 取到 undefined，字段被 JSON 序列化丢弃 → 后端收空 body 报 422。reactive 直接 .属性，ref 才 .value。
+4. **字段名多字母/拼错**：passwordL（多写个 L）导致 prop/rules/form 约定对不上；require（应为 required）让规则静默失效，空密码也能过。
+5. **cmd 里 curl 发 JSON 被引号转义破坏**（报 error parsing the body）：改用 python -c requests 直调。
+6. **浏览器自动化工具限制**：执行 JS 后页面整页重载（vite 重连），Vue 状态清空、ElMessage 瞬态提示抓不到；模拟 v-model 填表必须用原生 value setter + dispatchEvent('input')。验证跳转靠地址栏 URL + 网络请求记录。
+
+---
+
+## 六、Git 操作手册
 
 ### 1. 数据流动模型（核心概念）
 

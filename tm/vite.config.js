@@ -5,12 +5,12 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
 
-  sever: {
+  server: {
     proxy: {
       // 请求路径前缀/api/xxx 会被代理到 https://localhost:8000/xxx
-      'api': {
+      '/api': {
         // 浏览器往哪里发请求
-        target: 'https://localhost:8008',
+        target: 'http://localhost:8008',
         //
         changeOrigin: true,
       }
