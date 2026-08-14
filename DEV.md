@@ -40,7 +40,7 @@
 │       ├── api/
 │       │   └── http.js    # axios 封装（实例/拦截器/token注入）
 │       ├── router/
-│       │   └── index.js   # 路由表定义
+│       │   └── index.js   # 路由表定义 + 全局守卫（未登录踢回 /login）
 │       ├── views/         # 页面级组件
 │       │   ├── Login.vue      # 登录页
 │       │   ├── Register.vue   # 注册页
@@ -155,12 +155,13 @@
 - [x] 统计接口
 - [x] requirements.txt
 
-### Phase 3：登录联调
-- [ ] 前端登录页 UI
-- [ ] 注册页 UI
-- [ ] axios 拦截器注入 token
-- [ ] 路由守卫（未登录跳转 /login）
-- [ ] 前后端联调通过
+### Phase 3：登录联调 ✅ 已完成
+- [x] 前端登录页 UI（el-form 校验 + 登录请求 + token 存储）
+- [x] 注册页 UI（自定义 validator 校验两次密码一致）
+- [x] axios 拦截器注入 token（http.js）
+- [x] 路由守卫（未登录跳转 /login，router/index.js）
+- [x] 前后端联调通过（注册/登录/守卫三环节实测）
+- [x] 修复 vite.config.js：sever→server、api→/api、https→http
 
 ### Phase 4：任务管理
 - [ ] 任务列表页（表格 + 筛选）
